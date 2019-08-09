@@ -180,28 +180,24 @@ NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortAsia(UncleanNum)]
 Asia = df[df.telephone.isin(NewData)]
 Asia['Lead Name'] = 'Asia M OldM' + str(today)
 Asia.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\Asia.csv', index=False)
-Asia = Asia.drop(columns=['Lead Name'])
 
 # Sort GCC Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortGCC(UncleanNum)]
 GCC = df[df.telephone.isin(NewData)]
 GCC['Lead Name'] = 'GCC M OldM' + str(today)
 GCC.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\GCC.csv', index=False)
-GCC = GCC.drop(columns=['Lead Name'])
 
 # Sort OC Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortOC(UncleanNum)]
 OC = df[df.telephone.isin(NewData)]
 OC['Lead Name'] = 'Oceania M OldM' + str(today)
 OC.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\OC.csv', index=False)
-OC = OC.drop(columns=['Lead Name'])
 
 # Sort EU Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortEU(UncleanNum)]
 EU = df[df.telephone.isin(NewData)]
 EU['Lead Name'] = 'Europe M OldM' + str(today)
 EU.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\EU.csv', index=False)
-EU = EU.drop(columns=['Lead Name'])
 
 # Sort AF Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortAF(UncleanNum)]
