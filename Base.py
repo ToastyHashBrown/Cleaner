@@ -1,33 +1,55 @@
-import numpy as np
-import pandas as pd
-import phonenumbers as pn
+import numpy as np, pandas as pd, phonenumbers as pn, pycountry as pyc, re, os
 from tqdm import tqdm
-import pycountry as pyc
-import re
 from datetime import date
+from tkinter import *
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
+from tkinter import filedialog
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 date = date.today()
-today = date.strftime("%m/%d/%y")
+today = date.strftime("%m%d%y")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-path = r'C:\\Users\\CSR001\\Documents\\CleanLeads\\Lead.xlsx'
 
-xls = pd.ExcelFile(path)
-df = xls.parse("Sheet2")
-df = df.dropna(subset=['telephone'])
-RAND = pd.Series([])
+# Choose xlsx file to clean
+Tk().withdraw()  # Choose xlsx file
+filename = askopenfilename()
+
+Tk().withdraw()  # Choose folder to save in
+save_path = filedialog.askdirectory()
+try:  # create folders in selected save file
+    os.chdir(save_path)
+    os.mkdir('Day')
+    os.mkdir('Night')
+    os.mkdir('Leads')
+except FileExistsError:
+    pass
+except OSError:
+    sys.exit()
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sheet_Name = input("Enter the Sheet Name: ")
+Purchase_Site = input("Enter Purchase Site: ")
+xls = pd.ExcelFile(filename)
+df = xls.parse(Sheet_Name)  # create pandas DataFrame of selected xlsx file
+df = df.dropna(subset=['telephone'])  # remove rows that have no data in their telephone column
 
 TeleNum = df['telephone'].values
 Numbers = []
-Surname = []
 Country = []
 
-df['RAND'] = np.random.randint(0, 999999, size=(len(df),1))
+df['RAND'] = np.random.randint(0, 999999, size=(len(df), 1))  # sets a random number column(used to randomly sort leads)
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def replace(orignstr):  # removes unwanted string from numbers
-    result = re.sub('\D', '', orignstr)
+def replace(origin_str):  # removes unwanted string from numbers
+    result = re.sub('\D', '', origin_str)
     return result
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -35,139 +57,143 @@ def cleanNumbers(number):  # checks number if it is a valid number
     vaild = True
     try:
         num = pn.parse('+' + str(number), None)
-        if not pn.is_valid_number(num):
+        if not pn.is_valid_number(num):  # Return true if number is valid
             vaild = False
     except:
         vaild = False
     return vaild
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def country(Number):
+def country(Number):  # get phone number's country name
     try:
         num = pn.parse('+' + str(Number), None)
-        CountryInitial = pn.region_code_for_number(num)
-        return pyc.countries.get(alpha_2=CountryInitial).name
+        CountryInitial = pn.region_code_for_number(num)  # Get Country Initials
+        return pyc.countries.get(alpha_2=CountryInitial).name  # Return Country Name
     except:
         pass
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def sortAsia(CleanNumbers):
-    ASdf = False
+def sortAsia(CleanNumbers):  # Find and sort Asia leads
+    Asia_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
     CountryInitial = pn.region_code_for_number(num)
-    if CountryInitial in ['HK', 'SG', 'ID', 'JP', 'MO', 'MY', 'KR', 'TW']:
-        ASdf = True
-    return ASdf
+    if CountryInitial in ['HK', 'SG', 'ID', 'JP', 'MO', 'MY', 'KR', 'TW']:  # Countries for Asia
+        Asia_DataFrame = True
+    return Asia_DataFrame
 
 
-def sortGCC(CleanNumbers):
-    GCCdf = False
+def sortGCC(CleanNumbers):  # Find and sort GCC leads
+    GCC_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
     CountryInitial = pn.region_code_for_number(num)
-    if CountryInitial in ['BH', 'KW', 'QA', 'SA', 'AE', 'LB']:
-        GCCdf = True
-    return GCCdf
+    if CountryInitial in ['BH', 'KW', 'QA', 'SA', 'AE', 'LB']:  # Countries for GCC
+        GCC_DataFrame = True
+    return GCC_DataFrame
 
 
-def sortOC(CleanNumbers):
-    OCdf = False
+def sortOC(CleanNumbers):  # Find and sort Oceania leads
+    Oceania_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
     CountryInitial = pn.region_code_for_number(num)
-    if CountryInitial in ['NZ', 'AU']:
-        OCdf = True
-    return OCdf
+    if CountryInitial in ['NZ', 'AU']:  # Countries for Oceania
+        Oceania_DataFrame = True
+    return Oceania_DataFrame
 
 
-def sortEU(CleanNumbers):
-    EUdf = False
+def sortEU(CleanNumbers):  # Find and sort Europe leads
+    Europe_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
     CountryInitial = pn.region_code_for_number(num)
     if CountryInitial in ['LU', 'LI', 'IE', 'IS', 'NL', 'NO', 'PL', 'SE', 'CH', 'GB', 'DK', 'FI', 'DE', 'BG', 'HR',
-                          'CY', 'EE', 'GR', 'HU', 'IM', 'LT', 'MT', 'MC', 'RO', 'CZ', 'PT']:
-        EUdf = True
-    return EUdf
+                          'CY', 'EE', 'GR', 'HU', 'IM', 'LT', 'MT', 'MC', 'RO', 'CZ', 'PT']:  # Countries for Europe
+        Europe_DataFrame = True
+    return Europe_DataFrame
 
 
-def sortAF(CleanNumbers):
-    AFdf = False
+def sortAF(CleanNumbers):  # Find and sort Africa leads
+    Africa_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
     CountryInitial = pn.region_code_for_number(num)
-    if CountryInitial in ['MG', 'ZA']:
-        AFdf = True
-    return AFdf
+    if CountryInitial in ['MG', 'ZA']:  # Countries for Africa
+        Africa_DataFrame = True
+    return Africa_DataFrame
 
 
-def sortNA(CleanNumbers):
-    NAdf = False
+def sortNA(CleanNumbers):  # Find and sort North Am leads
+    NorthAm_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
     CountryInitial = pn.region_code_for_number(num)
-    if CountryInitial in ['CA', 'TT', 'BS']:
-        NAdf = True
-    return NAdf
+    if CountryInitial in ['CA', 'TT', 'BS']:  # Countries for North Am
+        NorthAm_DataFrame = True
+    return NorthAm_DataFrame
 
 
-def sortIT(CleanNumbers):
-    ITdf = False
+def sortIT(CleanNumbers):  # Find and sort Italy leads
+    Italy_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
     CountryInitial = pn.region_code_for_number(num)
-    if CountryInitial in ['IT']:
-        ITdf = True
-    return ITdf
+    if CountryInitial in ['IT']:  # Sort Italy
+        Italy_DataFrame = True
+    return Italy_DataFrame
 
 
-def sortES(CleanNumbers):
-    ESdf = False
+def sortES(CleanNumbers):  # Find and sort Spain leads
+    Spain_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
     CountryInitial = pn.region_code_for_number(num)
-    if CountryInitial in ['ES']:
-        ESdf = True
-    return ESdf
+    if CountryInitial in ['ES']:  # Sort Spain
+        Spain_DataFrame = True
+    return Spain_DataFrame
 
 
-def sortBR(CleanNumbers):
-    BRdf = False
+def sortBR(CleanNumbers):  # Find and sort Brazil leads
+    Brazil_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
     CountryInitial = pn.region_code_for_number(num)
-    if CountryInitial in ['BR']:
-        BRdf = True
-    return BRdf
+    if CountryInitial in ['BR']:  # Sort Brazil
+        Brazil_DataFrame = True
+    return Brazil_DataFrame
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 def sortDay(Daydf):
     Day = {}
-    for g, df in Daydf.groupby(np.arange(len(Daydf)) // 5000):
-        Day[g] = df
+    for group, df in Daydf.groupby(np.arange(len(Daydf)) // 5000):
+        Day[group] = df
     return Day
 
 
 def sortNight(Nightdf):
     Night = pd.DataFrame()
-    for g, df in Nightdf.groupby(np.arange(len(Nightdf)) // 5000):
-        Night[g] = df
+    for group, df in Nightdf.groupby(np.arange(len(Nightdf)) // 5000):
+        Night[group] = df
     return Night
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-# cleaning for any unwanted strings
-for UncleanNum in tqdm(TeleNum):
+for UncleanNum in tqdm(TeleNum):  # cleaning for any unwanted strings
     newnum = replace(str(UncleanNum))  # calling replace function
     Numbers.append(newnum)  # store string back in data frame
 else:
     df = df.drop(columns=['telephone'])
     df.insert(1, "telephone", Numbers)
-    TeleNum = df['telephone'].values
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Clean Numbers
-df = df[df['telephone'].apply(cleanNumbers)]
+df = df[df['telephone'].apply(cleanNumbers)]  # Clean Numbers
 TeleNum = df['telephone'].values
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# place country name
-for UncleanNum in tqdm(TeleNum):
+for UncleanNum in tqdm(TeleNum):  # place country name
     newdata = country(str(UncleanNum))  # calling replace function
     Country.append(newdata)  # store string back in data frame
 else:
@@ -177,77 +203,92 @@ else:
 
 # Sort Asia Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortAsia(UncleanNum)]
-Asia = df[df.telephone.isin(NewData)]
-Asia['Lead Name'] = 'Asia M OldM' + str(today)
-Asia.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\Asia.csv', index=False)
+Asia = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for Asia
+Asia['Lead Name'] = 'Asia ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
 
 # Sort GCC Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortGCC(UncleanNum)]
-GCC = df[df.telephone.isin(NewData)]
-GCC['Lead Name'] = 'GCC M OldM' + str(today)
-GCC.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\GCC.csv', index=False)
+GCC = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for GCC
+GCC['Lead Name'] = 'GCC ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
 
 # Sort OC Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortOC(UncleanNum)]
-OC = df[df.telephone.isin(NewData)]
-OC['Lead Name'] = 'Oceania M OldM' + str(today)
-OC.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\OC.csv', index=False)
+OC = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for Oceania
+OC['Lead Name'] = 'Oceania ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
 
 # Sort EU Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortEU(UncleanNum)]
-EU = df[df.telephone.isin(NewData)]
-EU['Lead Name'] = 'Europe M OldM' + str(today)
-EU.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\EU.csv', index=False)
+EU = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for Europe
+EU['Lead Name'] = 'Europe ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
 
 # Sort AF Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortAF(UncleanNum)]
-AF = df[df.telephone.isin(NewData)]
-AF.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\AF.csv', index=False)
+AF = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for Africa
+AF['Lead Name'] = 'Africa ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
 
 # Sort NA Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortNA(UncleanNum)]
-NA = df[df.telephone.isin(NewData)]
-NA.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\NA.csv', index=False)
+NA = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for North Am
+NA['Lead Name'] = 'North Am ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
 
 # Sort IT Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortIT(UncleanNum)]
-IT = df[df.telephone.isin(NewData)]
-IT.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\IT.csv', index=False)
+IT = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for Italy
+IT['Lead Name'] = 'Italy ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
 
 # Sort ES Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortES(UncleanNum)]
-ES = df[df.telephone.isin(NewData)]
-ES.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\ES.csv', index=False)
+ES = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for Spain
+ES['Lead Name'] = 'Spain ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
 
 # Sort BR Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortBR(UncleanNum)]
-BR = df[df.telephone.isin(NewData)]
-BR.to_csv('C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\BR.csv', index=False)
+BR = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for Brazil
+BR['Lead Name'] = 'Brazil ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#Day Sort
-i = 0
-Day = [OC, Asia]
-Day = pd.concat(Day)
-Day = Day.sort_values(by='RAND')
-Day = Day.drop(columns=['RAND'])
-NewData = sortDay(Day)
-for p in tqdm(NewData):
-    n = pd.DataFrame(NewData[i])
-    path = 'C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\Day\\' + str(i) + 'Day.csv'
-    n.to_csv(path, index=False)
-    i += 1
+# Day Sort
+Day = [OC, Asia]  # store OC DataFrame and Asia DataFrame
+Day = pd.concat(Day)  # combine the DataFrame
+Day = Day.sort_values(by='RAND')  # Sort RAND column
+Day = Day.drop(columns=['RAND'])  # Drop RAND column
+NewData = sortDay(Day)  # Call sortDay
+for Array in tqdm(NewData):  # Save DataFrames as individual files
+    new_file = pd.DataFrame(NewData[Array])
+    path = save_path + '\\Day\\' + str(Array + 1) + ' ' + Purchase_Site + ' Day.csv'
+    new_file.to_csv(path, index=False, header=False)
 
-#Night Sort
-i = 0
-Night = [EU, GCC]
-Night = pd.concat(Night)
-Night = Night.sort_values(by='RAND')
-Night = Night.drop(columns=['RAND'])
-NewData = sortDay(Night)
-for p in tqdm(NewData):
-    n = pd.DataFrame(NewData[i])
-    path = 'C:\\Users\\CSR001\\Documents\\CleanLeads\\Test\\Night\\' + str(i) + 'Night.csv'
-    n.to_csv(path, index=False)
-    i += 1
+# Night Sort
+Night = [EU, GCC]  # store EU DataFrame and GCC DataFrame
+Night = pd.concat(Night)  # combine the DataFrame
+Night = Night.sort_values(by='RAND')  # Sort RAND column
+Night = Night.drop(columns=['RAND'])  # Drop RAND column
+NewData = sortDay(Night)  # Call sortNight
+for Array in tqdm(NewData):  # Save DataFrames as individual files
+    new_file = pd.DataFrame(NewData[Array])
+    path = save_path + '\\Night\\' + str(Array + 1) + ' ' + Purchase_Site + ' Night.csv'
+    new_file.to_csv(path, index=False, header=False)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if not Asia.empty:
+    Asia.to_csv(save_path + '\\Leads\\Asia.csv', index=False, header=False)
+if not GCC.empty:
+    GCC.to_csv(save_path + '\\Leads\\GCC.csv', index=False, header=False)
+if not OC.empty:
+    OC.to_csv(save_path + '\\Leads\\OC.csv', index=False, header=False)
+if not EU.empty:
+    EU.to_csv(save_path + '\\Leads\\EU.csv', index=False, header=False)
+if not AF.empty:
+    AF.to_csv(save_path + '\\Leads\\AF.csv', index=False, header=False)
+if not NA.empty:
+    NA.to_csv(save_path + '\\Leads\\NA.csv', index=False, header=False)
+if not IT.empty:
+    IT.to_csv(save_path + '\\Leads\\IT.csv', index=False, header=False)
+if not ES.empty:
+    ES.to_csv(save_path + '\\Leads\\ES.csv', index=False, header=False)
+if not BR.empty:
+    BR.to_csv(save_path + '\\Leads\\BR.csv', index=False, header=False)
+
+myFile = open(save_path + '\\Read me.txt', 'w')
+myFile.write("Don't forget to change the decimal to '0'.")
+myFile.close()
