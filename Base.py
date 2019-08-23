@@ -5,12 +5,11 @@ from tkinter import *
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from tkinter import filedialog
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 date = date.today()
 today = date.strftime("%m%d%y")
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Choose xlsx file to clean
 Tk().withdraw()  # Choose xlsx file
 filename = askopenfilename()
@@ -28,7 +27,6 @@ except OSError:
     sys.exit()
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Sheet_Name = input("Enter the Sheet Name: ")
 Purchase_Site = input("Enter Purchase Site: ")
 xls = pd.ExcelFile(filename)
@@ -43,16 +41,12 @@ df['RAND'] = np.random.randint(0, 999999, size=(len(df), 1))  # sets a random nu
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 def replace(origin_str):  # removes unwanted string from numbers
     result = re.sub('\D', '', origin_str)
     return result
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 def cleanNumbers(number):  # checks number if it is a valid number
     vaild = True
     try:
@@ -65,8 +59,6 @@ def cleanNumbers(number):  # checks number if it is a valid number
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 def country(Number):  # get phone number's country name
     try:
         num = pn.parse('+' + str(Number), None)
@@ -77,8 +69,6 @@ def country(Number):  # get phone number's country name
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 def sortAsia(CleanNumbers):  # Find and sort Asia leads
     Asia_DataFrame = False
     num = pn.parse('+' + str(CleanNumbers), None)
@@ -162,8 +152,6 @@ def sortBR(CleanNumbers):  # Find and sort Brazil leads
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 def sortDay(Daydf):
     Day = {}
     for group, df in Daydf.groupby(np.arange(len(Daydf)) // 5000):
@@ -179,28 +167,26 @@ def sortNight(Nightdf):
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 for UncleanNum in tqdm(TeleNum):  # cleaning for any unwanted strings
     newnum = replace(str(UncleanNum))  # calling replace function
     Numbers.append(newnum)  # store string back in data frame
 else:
     df = df.drop(columns=['telephone'])
     df.insert(1, "telephone", Numbers)
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 df = df[df['telephone'].apply(cleanNumbers)]  # Clean Numbers
 TeleNum = df['telephone'].values
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 for UncleanNum in tqdm(TeleNum):  # place country name
     newdata = country(str(UncleanNum))  # calling replace function
     Country.append(newdata)  # store string back in data frame
 else:
     df = df.drop(columns=['country'])
     df['country'] = Country
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Sort Asia Numbers
 NewData = [UncleanNum for UncleanNum in tqdm(TeleNum) if sortAsia(UncleanNum)]
 Asia = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFrame for Asia
@@ -247,7 +233,6 @@ BR = pd.DataFrame(df[df.telephone.isin(NewData)])  # Create a new pandas DataFra
 BR['Lead Name'] = 'Brazil ' + Purchase_Site + ' ' + str(today)  # Create a column for lead names
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 # Day Sort
 Day = [OC, Asia]  # store OC DataFrame and Asia DataFrame
 Day = pd.concat(Day)  # combine the DataFrame
@@ -269,6 +254,7 @@ for Array in tqdm(NewData):  # Save DataFrames as individual files
     new_file = pd.DataFrame(NewData[Array])
     path = save_path + '\\Night\\' + str(Array + 1) + ' ' + Purchase_Site + ' Night.csv'
     new_file.to_csv(path, index=False, header=False)
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if not Asia.empty:
     Asia.to_csv(save_path + '\\Leads\\Asia.csv', index=False, header=False)
